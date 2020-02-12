@@ -38,7 +38,9 @@ array_contains(PyArrayObject *self, PyObject *el)
     if (res == NULL) {
         return -1;
     }
-    any = PyArray_Any((PyArrayObject *)res, NPY_MAXDIMS, NULL);
+    if(any = PyArray_Any((PyArrayObject *)res, NPY_MAXDIMS, NULL) == NULL) {
+        return -1;
+    }
     Py_DECREF(res);
     ret = PyObject_IsTrue(any);
     Py_DECREF(any);
