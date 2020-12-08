@@ -286,7 +286,11 @@ static void
 @name@_ctype_floor_divide(@type@ a, @type@ b, @type@ *out) {
     @type@ mod;
 
-    *out = npy_divmod@c@(a, b, &mod);
+    if (!b) {
+        *out = a / b;
+    } else {
+        *out = npy_divmod@c@(a, b, &mod);
+    }
 }
 
 
@@ -319,7 +323,11 @@ static void
 half_ctype_floor_divide(npy_half a, npy_half b, npy_half *out) {
     npy_half mod;
 
-    *out = npy_half_divmod(a, b, &mod);
+    if (!b) {
+        *out = a / b;
+    } else {
+        *out = npy_half_divmod(a, b, &mod);
+    }
 }
 
 
@@ -798,15 +806,8 @@ static PyObject *
 {
     PyObject *ret;
     @type@ arg1, arg2;
-    /*
-     * NOTE: In gcc >= 4.1, the compiler will reorder floating point
-     *       operations and floating point error state checks. In
-     *       particular, the arithmetic operations were being reordered
-     *       so that the errors weren't caught.  Declaring this output
-     *       variable volatile was the minimal fix for the issue.
-     *       (Ticket #1671)
-     */
-    volatile @otype@ out;
+    @otype@ out;
+
 #if @twoout@
     @otype@ out2;
     PyObject *obj;
@@ -979,7 +980,8 @@ static PyObject *
  *          Double, LongDouble,
  *          CFloat, CDouble, CLongDouble#
  *
- * #isint = (1,0)*5,0*7#
+ * #isint = 1*10,0*7#
+ * #isuint = (0,1)*5,0*7#
  * #cmplx = 0*14,1*3#
  * #iszero = _IS_ZERO*10, npy_half_iszero, _IS_ZERO*6#
  * #zero = 0*10, NPY_HALF_ZERO, 0*6#
