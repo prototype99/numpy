@@ -1040,6 +1040,14 @@ gentype_richcompare(PyObject *self, PyObject *other, int cmp_op)
         }
     }
 
+    if(PyArray_IsPythonNumber(other)) {
+        PyObject  *item;
+        item = gentype_generic_method(self, NULL, NULL, "item");
+        ret = PyObject_RichCompare(item, other, cmp_op);
+        Py_DECREF(item);
+        return ret;
+    }
+
     arr = PyArray_FromScalar(self, NULL);
     if (arr == NULL) {
         return NULL;
@@ -1052,6 +1060,7 @@ gentype_richcompare(PyObject *self, PyObject *other, int cmp_op)
     Py_DECREF(arr);
     return ret;
 }
+
 
 static PyObject *
 gentype_ndim_get(PyObject *NPY_UNUSED(self))
