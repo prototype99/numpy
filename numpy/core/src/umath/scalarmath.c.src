@@ -630,7 +630,7 @@ descr_from_basic_scalar(PyObject *obj, PyArray_Descr **descr)
 static PyObject*
 do_richcompare_on_scalars(PyObject *self, PyObject *other, int cmp_op) {
     PyObject *item_self, *ret;
-    PyArray_Descr *self_descr, *other_descr;
+    PyArray_Descr *self_descr=NULL, *other_descr=NULL;
     void *data_self;
     int pyscalar_other;
 
@@ -640,13 +640,14 @@ do_richcompare_on_scalars(PyObject *self, PyObject *other, int cmp_op) {
     if (NPY_LIKELY(pyscalar_other > 0)) {
         data_self = scalar_value(self, NULL);
         item_self = self_descr->f->getitem(data_self, NULL);
-        Py_DECREF(self_descr);
 
         ret = PyObject_RichCompare(item_self, other, cmp_op);
         Py_DECREF(item_self);
 
         return ret;
     }
+    Py_DECREF(self_descr);
+    Py_DECREF(other_descr);
 
     return NULL;
 }
