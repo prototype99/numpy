@@ -597,9 +597,13 @@ descr_from_basic_scalar(PyObject *obj, PyArray_Descr **descr)
     else if (PyLong_CheckExact(obj)) {
         int overflow;
         if (PyLong_AsLongAndOverflow(obj, &overflow) < 0) {
-            /* overflow must have occurred */
-            assert(overflow != 0);
-            return -1;
+            /* obj might actually contain a negative int.
+             * So check for generic error first */
+            if (PyErr_Occurred()) {
+                return -1;
+            }
+            /* Then fail if there is an overflow(-1 or 1) */
+            assert(overflow == 0);
         }
         *descr = PyArray_DescrFromType(NPY_LONG);
         return 1;
@@ -619,34 +623,27 @@ descr_from_basic_scalar(PyObject *obj, PyArray_Descr **descr)
  *
  * @param self The first object which will be converted to scalar item
  * @param other The second object to compare to
- * @param other The value of comparison operator
+ * @param cmp_op The value of comparison operator
  * @returns Py_False or Py_True if richcompare is successfull
  *          , otherwise NULL.
  */
 static PyObject*
 do_richcompare_on_scalars(PyObject *self, PyObject *other, int cmp_op) {
-    PyObject *item_self, *item_other, *ret;
+    PyObject *item_self, *ret;
     PyArray_Descr *self_descr, *other_descr;
-    void *data_self, *data_other;
-    int pyscalar_self, pyscalar_other;
+    void *data_self;
+    int pyscalar_other;
 
-    pyscalar_self = descr_from_basic_scalar(self, &self_descr);
+    descr_from_basic_scalar(self, &self_descr);
     pyscalar_other = descr_from_basic_scalar(other, &other_descr);
 
-    if (NPY_LIKELY(pyscalar_self > 0 && pyscalar_other > 0)) {
+    if (NPY_LIKELY(pyscalar_other > 0)) {
         data_self = scalar_value(self, NULL);
-        data_other = scalar_value(other, NULL);
-
         item_self = self_descr->f->getitem(data_self, NULL);
-        item_other = other_descr->f->getitem(data_other, NULL);
-
-        Py_DECREF(item_other);
-        Py_DECREF(item_self);
-
-        ret = PyObject_RichCompare(item_self, item_other, cmp_op);
-
         Py_DECREF(self_descr);
-        Py_DECREF(other_descr);
+
+        ret = PyObject_RichCompare(item_self, other, cmp_op);
+        Py_DECREF(item_self);
 
         return ret;
     }
