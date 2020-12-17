@@ -596,14 +596,14 @@ descr_from_basic_scalar(PyObject *obj, PyArray_Descr **descr)
     }
     else if (PyLong_CheckExact(obj)) {
         int overflow;
-        if (PyLong_AsLongAndOverflow(obj, &overflow) < 0) {
-            /* obj might actually contain a negative int.
-             * So check for generic error first */
-            if (PyErr_Occurred()) {
+        if (PyLong_AsLongAndOverflow(obj, &overflow) == -1) {
+            /* obj might actually contain a -1.
+             * So check for generic error or overflow */
+            if (PyErr_Occurred() || overflow != 0) {
+                /* Fail if there is an overflow(-1 or 1) */
+                assert(overflow == 0);
                 return -1;
             }
-            /* Then fail if there is an overflow(-1 or 1) */
-            assert(overflow == 0);
         }
         *descr = PyArray_DescrFromType(NPY_LONG);
         return 1;
@@ -629,7 +629,7 @@ descr_from_basic_scalar(PyObject *obj, PyArray_Descr **descr)
  */
 static PyObject*
 do_richcompare_on_scalars(PyObject *self, PyObject *other, int cmp_op) {
-    PyObject *item_self, *ret;
+    PyObject *item_self, *ret=NULL;
     PyArray_Descr *self_descr=NULL, *other_descr=NULL;
     void *data_self;
     int pyscalar_other;
@@ -644,12 +644,11 @@ do_richcompare_on_scalars(PyObject *self, PyObject *other, int cmp_op) {
         ret = PyObject_RichCompare(item_self, other, cmp_op);
         Py_DECREF(item_self);
 
-        return ret;
     }
     Py_DECREF(self_descr);
     Py_DECREF(other_descr);
 
-    return NULL;
+    return ret;
 }
 
 
