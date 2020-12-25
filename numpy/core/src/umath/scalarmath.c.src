@@ -637,16 +637,26 @@ do_richcompare_on_scalars(PyObject *self, PyObject *other, int cmp_op) {
     descr_from_basic_scalar(self, &self_descr);
     pyscalar_other = descr_from_basic_scalar(other, &other_descr);
 
-    if (NPY_LIKELY(pyscalar_other > 0)) {
-        data_self = scalar_value(self, NULL);
-        item_self = self_descr->f->getitem(data_self, NULL);
+    /* If either of the operands are complex AND the operator is not equality,
+     * python's built-in richcompare cannot be used as it is not supported */
+    if ((self_descr->type_num < NPY_CFLOAT &&
+        (other_descr != NULL && other_descr->type_num < NPY_CFLOAT))
+        || (cmp_op == Py_EQ || cmp_op == Py_NE)) {
+        if (NPY_LIKELY(pyscalar_other > 0)) {
+            data_self = scalar_value(self, NULL);
+            item_self = self_descr->f->getitem(data_self, NULL);
 
-        ret = PyObject_RichCompare(item_self, other, cmp_op);
-        Py_DECREF(item_self);
+            ret = PyObject_RichCompare(item_self, other, cmp_op);
+            Py_DECREF(item_self);
 
+        }
     }
-    Py_DECREF(self_descr);
-    Py_DECREF(other_descr);
+    if (NPY_LIKELY(self_descr != NULL)) {
+        Py_DECREF(self_descr);
+    }
+    if (other_descr != NULL) {
+        Py_DECREF(other_descr);
+    }
 
     return ret;
 }
