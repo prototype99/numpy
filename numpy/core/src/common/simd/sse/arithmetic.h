@@ -91,6 +91,45 @@ NPY_FINLINE __m128i npyv_mul_u8(__m128i a, __m128i b)
 // TODO: emulate integer division
 #define npyv_div_f32 _mm_div_ps
 #define npyv_div_f64 _mm_div_pd
+// XXX Implement 32 and 64 bit versions
+// encapsulate parameters for fast division on vector of 3 16-bit signed integers
+NPY_INLINE npyv_s16x3 npyv_divisor_s16(npy_int16 d)
+{
+    const int d1 = abs(d);
+    int sh, m;
+    if (d1 > 1) {
+       // TODO: implment npy_bit_scan_reverse_u32
+        sh = (int)npy_bit_scan_reverse_u32(d1-1); // shift count = ceil(log2(d1))-1 = (bit_scan_reverse(d1-1)+1)-1
+        m = ((1 << (16 + sh)) / d1 - ((1 << 16) - 1)); // calculate multiplier
+    }
+    else {
+        m = 1;                                                  // for d1 = 1
+        sh = 0;
+        if (d == 0) {
+            m /= d;  // provoke error here if d = 0
+        }
+        if (d == 0x8000) { // fix overflow for this special case
+            m = 0x8001;
+            sh = 14;
+        }
+    }
+    npyv_s16x3 divisor;
+    divisor.val[0] = _mm_set1_epi16((npy_int16)m);           // broadcast multiplier
+    divisor.val[1] = _mm_setr_epi32(sh, 0, 0, 0);            // shift count
+    divisor.val[2] = _mm_set1_epi32(d < 0 ? -1 : 0);         // sign of divisor
+    return divisor;
+}
+
+NPY_FINLINE npyv_s16 npyv_divc_s16(npyv_s16 a, const npyv_s16x3 divisor)
+{
+    __m128i t1 = _mm_mulhi_epi16(a, divisor.val[0]);   // multiply high signed words
+    __m128i t2 = _mm_add_epi16(t1, a);                 // + a
+    __m128i t3 = _mm_sra_epi16(t2, divisor.val[1]);    // shift right arithmetic
+    __m128i t4 = _mm_srai_epi16(a, 15);                // sign of a
+    __m128i t5 = _mm_sub_epi16(t4, divisor.val[2]);    // sign of a - sign of d
+    __m128i t6 = _mm_sub_epi16(t3, t5);                // + 1 if a < 0, -1 if d < 0
+    return _mm_xor_si128(t6, divisor.val[2]);          // change sign if divisor negative
+}
 /***************************
  * FUSED
  ***************************/

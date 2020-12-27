@@ -1,6 +1,16 @@
 #ifndef _NPY_SIMD_UTILS_H
 #define _NPY_SIMD_UTILS_H
 
+// Define bit-scan-reverse function. Gives index to highest set bit = floor(log2(a))
+#if defined (__GNUC__) || defined(__clang__)
+inline npy_uint npy_bit_scan_reverse_u32(npy_uint a) __attribute__((pure));
+inline npy_uint npy_bit_scan_reverse_u32(npy_uint a) {
+    uint32_t r;
+    __asm("bsrl %1, %0" : "=r"(r) : "r"(a) : );
+    return r;
+}
+#endif // XXX Implement for others
+
 #define NPYV__SET_2(CAST, I0, I1, ...) (CAST)(I0), (CAST)(I1)
 
 #define NPYV__SET_4(CAST, I0, I1, I2, I3, ...) \
