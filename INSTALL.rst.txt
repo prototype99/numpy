@@ -1,5 +1,12 @@
+.. -*- rest -*-
+.. vim:syntax=rest
+.. NB! Keep this document a valid restructured document.
+
 Building and installing NumPy
 +++++++++++++++++++++++++++++
+
+:Authors: Numpy Developers <numpy-discussion@scipy.org>
+:Discussions to: numpy-discussion@scipy.org
 
 **IMPORTANT**: the below notes are about building NumPy, which for most users
 is *not* the recommended way to install NumPy.  Instead, use either a complete
@@ -20,6 +27,12 @@ Building NumPy requires the following installed software:
    e.g., on Debian/Ubuntu one needs to install both `python3` and
    `python3-dev`. On Windows and macOS this is normally not an issue.
 
+   Make sure that the Python package distutils is installed before
+   continuing. For example, in Debian GNU/Linux, distutils is included
+   in the python-dev package.
+
+   Python must also be compiled with the zlib module enabled.
+
 2) Cython >= 0.29.21
 
 3) pytest__ (optional) 1.15 or later
@@ -30,10 +43,9 @@ Building NumPy requires the following installed software:
 
    This is required for testing NumPy, but not for using it.
 
-Python__ https://www.python.org/
+Python__ https://www.python.org
 pytest__ https://docs.pytest.org/en/stable/
 Hypothesis__ https://hypothesis.readthedocs.io/en/latest/
-
 
 .. note::
 
@@ -50,7 +62,7 @@ Hypothesis__ https://hypothesis.readthedocs.io/en/latest/
 Basic Installation
 ==================
 
-To install NumPy, run::
+To install NumPy run:
 
     python setup.py build -j 4 install --prefix $HOME/.local
 
@@ -126,25 +138,20 @@ likely to drop support for it in the near future.
 Ubuntu/Debian
 -------------
 
-For best performance, a development package providing BLAS and CBLAS should be
-installed.  Some of the options available are:
+For best performance a development package providing BLAS and CBLAS must be installed
+Options are for example:
 
-- ``libblas-dev``: reference BLAS (not very optimized)
-- ``libatlas-base-dev``: generic tuned ATLAS, it is recommended to tune it to
-  the available hardware, see /usr/share/doc/libatlas3-base/README.Debian for
-  instructions
-- ``libopenblas-base``: fast and runtime detected so no tuning required but a
-  very recent version is needed (>=0.2.15 is recommended).  Older versions of
-  OpenBLAS suffered from correctness issues on some CPUs.
+- libblas-dev: reference BLAS (not very optimized)
+- libatlas-base-dev: generic tuned ATLAS, it is recommended to tune it to the available hardware, see /usr/share/doc/libatlas3-base/README.Debian for instructions
+- libopenblas-base: fast and runtime detected so no tuning required but recent version is needed (>=0.2.15 recommended).  Older versions of OpenBLAS suffer from correctness issues on some CPUs.
 
-The package linked to when numpy is loaded can be chosen after installation via
-the alternatives mechanism::
+The actual implementation can be chosen after installation via
+the alternatives mechanism:
 
     update-alternatives --config libblas.so.3
     update-alternatives --config liblapack.so.3
 
-Or by preloading a specific BLAS library with::
-
+Or by preloading a specific BLAS library with
     LD_PRELOAD=/usr/lib/atlas-base/atlas/libblas.so.3 python ...
 
 
