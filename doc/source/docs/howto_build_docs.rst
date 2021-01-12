@@ -27,11 +27,10 @@ additional parts required for building the documentation::
 
 In addition, building the documentation requires the Sphinx extension
 `plot_directive`, which is shipped with Matplotlib_. This Sphinx extension can
-be installed by installing Matplotlib. You will also need Python>=3.6.
+be installed by installing Matplotlib.
 
-Since large parts of the main documentation are obtained from numpy via
-``import numpy`` and examining the docstrings, you will need to first build
-NumPy, and install it so that the correct version is imported.
+Since large parts of the main documentation are stored in docstrings, you will need to first build NumPy, and install it so
+that the correct version is imported.
 
 After NumPy is installed, install SciPy since some of the plots in the random
 module require `scipy.special` to display properly.
