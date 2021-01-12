@@ -1,13 +1,32 @@
-# <img alt="NumPy" src="https://ghcdn.rawgit.org/numpy/numpy/master/branding/icons/primary/numpylogo.svg" height="60">
+Welcome to the ChimOS fork of PyPy's fork of Numpy, a fundamental package needed for scientific computing with Python *NumPyPy*. In order to install, first
+install PyPy, hints are here http://pypy.org/download.html. Note this is
+a binary install, no lengthy translation or compilation necessary.
 
-[![Travis CI](https://img.shields.io/travis/com/numpy/numpy/master?label=Travis%20CI)](
-    https://travis-ci.com/github/numpy/numpy)
-[![Azure](https://dev.azure.com/numpy/numpy/_apis/build/status/azure-pipeline%20numpy.numpy)](
-    https://dev.azure.com/numpy/numpy/_build/latest?definitionId=5)
-[![codecov](https://codecov.io/gh/numpy/numpy/branch/master/graph/badge.svg)](
-    https://codecov.io/gh/numpy/numpy)
+If you get a message about `missing Python.h` you must install the pypy-dev
+package for your system
 
-NumPy is the fundamental package needed for scientific computing with Python.
+If you get a message about "unable to find vcvarsall.bat", you need to install
+install a compiler. Microsoft has a download for that at
+http://www.microsoft.com/en-us/download/details.aspx?id=44266
+
+If you installed to a system directory, you may need to run::
+
+    sudo pypy -c 'import numpy'
+
+once to initialize the cffi cached shared objects as `root`
+
+numpy is still not pypy3 compatible
+
+If you do not have lapack/blas runtimes, it may take over 10 minutes to install,
+since it needs to build a lapack compatability library. However, you may later
+install upstream compatible runtimes, and NumPy should pick them up
+automatically the next time you run PyPy.
+
+Also note that the latest version of NumPy will probably not run in an older
+PyPy. Specifically, we require cffi 1.0 or later. Since cffi is baked into
+PyPy, you cannot update cffi in any version of PyPy (true as of Nov 2015)
+so there is no recourse but to update PyPy.
+
 
 - **Website:** https://www.numpy.org
 - **Documentation:** https://numpy.org/doc
@@ -24,26 +43,10 @@ It provides:
 - tools for integrating C/C++ and Fortran code
 - useful linear algebra, Fourier transform, and random number capabilities
 
+It derives from the old Numeric code base and can be used as a replacement for Numeric. It also adds the features introduced by numarray and can be used to replace numarray.
+
 Testing:
 
-- NumPy versions &ge; 1.15 require `pytest`
-- NumPy versions &lt; 1.15 require `nose`
-
-Tests can then be run after installation with:
+After installation, tests can be run with:
 
     python -c 'import numpy; numpy.test()'
-
-
-Call for Contributions
-----------------------
-
-NumPy appreciates help from a wide range of different backgrounds.
-Work such as high level documentation or website improvements are valuable
-and we would like to grow our team with people filling these roles.
-Small improvements or fixes are always appreciated and issues labeled as easy
-may be a good starting point.
-If you are considering larger contributions outside the traditional coding work,
-please contact us through the mailing list.
-
-
-[![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](https://numfocus.org)
