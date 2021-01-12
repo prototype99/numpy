@@ -8,7 +8,6 @@ several places. It should be summarized in one place, updated, and where
 necessary described in more detail. The sections below list all places where
 useful info can be found.
 
-
 Source tree
 -----------
 - INSTALL.rst.txt
@@ -18,7 +17,7 @@ Source tree
 
 NumPy Docs
 ----------
-- https://github.com/numpy/numpy/blob/master/doc/HOWTO_RELEASE.rst.txt
+- https://github.com/prototype99/numpy/blob/master/doc/HOWTO_RELEASE.rst.txt
 
 
 SciPy.org wiki
@@ -33,10 +32,7 @@ Release Scripts
 
 Supported platforms and versions
 ================================
-:ref:`NEP 29 <NEP29>` outlines which Python versions
-are supported; For the first half of 2020, this will be Python >= 3.6. We test
-NumPy against all these versions every time we merge code to master.  Binary
-installers may be available for a subset of these versions (see below).
+Python >=3.7 is the currently supported version on all platforms.
 
 OS X
 ----
@@ -49,14 +45,13 @@ macports - see this `OSX wheel building summary
 
 Windows
 -------
-We build 32- and 64-bit wheels on Windows. Windows 7, 8 and 10 are supported.
+Windows 7, 8 and 10 are supported.
 We build NumPy using the `mingw-w64 toolchain`_ on Appveyor.
 
 
 Linux
 -----
-We build and ship `manylinux1 <https://www.python.org/dev/peps/pep-0513>`_
-wheels for NumPy.  Many Linux distributions include their own binary builds
+Many Linux distributions include their own binary builds
 of NumPy.
 
 
@@ -68,12 +63,6 @@ reported.
 
 Tool chain
 ==========
-We build all our wheels on cloud infrastructure - so this list of compilers is
-for information and debugging builds locally.  See the ``.travis.yml`` and
-``appveyor.yml`` scripts in the `numpy wheels`_ repo for the definitive source
-of the build recipes. Packages that are available using pip are noted.
-
-
 Compilers
 ---------
 The same gcc version is used as the one with which Python itself is built on
@@ -100,6 +89,54 @@ collisions with other OpenBLAS shared objects that may exist in the filesystem.
 .. _openblas-libs: https://github.com/MacPython/openblas-libs
 
 
+Wine
+----
+For building Windows binaries on OS X Wine can be used. In Wine the following
+needs to be installed:
+
+* Python 2.6-2.7 and 3.2
+* MakeNsis
+* CpuId plugin for MakeNsis : this can be found in the NumPy source tree under
+  tools/win32build/cpucaps and has to be built with MinGW (see SConstruct file in
+  that dir for details)
+* MinGW
+* ATLAS, 3x ([No SSE, SSE2, SSE3] for superpack installer) : ATLAS does not
+  compile under wine or on Windows out of the box. Binaries for ATLAS can be
+  found in the vendor repository on GitHub (http://github.com/numpy/vendor).
+
+To install Wine on OS X Snow Leopard the current options are to compile a
+current unstable version ,`<http://wiki.winehq.org/MacOSX/Building>`_, or to use
+an install script from `here <http://code.google.com/p/osxwinebuilder/>`_. For
+me, the former option did not work (everything compiled, but after installing
+Python the command ``import tempfile`` resulted in an exception. The latter
+option did work.
+
+After successful installation and an invocation of the wine executable, a
+~/.wine folder exists - new programs will be installed there in
+~/.wine/drive_c. Installing Windows programs with .exe executables is done by
+running
+
+  $ wine yourprog.exe
+
+and MSI installers can be installed with
+
+  $ msiexec /i yourprog.msi
+
+For the above to work you probably need to put the wine-1.x.x/bin directory in
+your PATH.
+
+To install MinGW, the easiest option is to use the automated installer on the
+MinGW download page. This will give you (at this moment) GCC 3.4.5; GCC 4.x is
+still not supported officially by MinGW.
+
+To be able to use gcc and MakeNsis in Wine, the locations of gcc.exe and
+makensis.exe should be added to the Windows environment variable PATH. This can
+easily be done by running
+
+  $ wine regedit
+
+add adding a PATH variable in HKEY_CURRENT_USER/Environment.
+
 Building source archives and wheels
 -----------------------------------
 You will need write permission for numpy-wheels in order to trigger wheel
@@ -112,7 +149,6 @@ builds.
 - pandoc `pandoc.org <https://www.pandoc.org>`_ or linux distro.
 - numpy-wheels `<https://github.com/MacPython/numpy-wheels>`_ (clone)
 
-
 Building docs
 -------------
 Building the documents requires a number of latex ``.sty`` files. Install them
@@ -123,7 +159,6 @@ all to avoid aggravation.
 - Matplotlib
 - Texlive (or MikTeX on Windows)
 
-
 Uploading to PyPI
 -----------------
 - terryfy `<https://github.com/MacPython/terryfy>`_ (clone).
@@ -131,7 +166,6 @@ Uploading to PyPI
 - delocate (pip)
 - auditwheel (pip)
 - twine (pip)
-
 
 Generating author/pr lists
 --------------------------
@@ -142,7 +176,6 @@ so that scripts can access the github NumPy repository.
 - gitpython (pip)
 - pygithub (pip)
 
-
 Virtualenv
 ----------
 Virtualenv is a very useful tool to keep several versions of packages around.
@@ -152,28 +185,9 @@ It is also used in the Paver script to build the docs.
 What is released
 ================
 
-Wheels
-------
-We currently support Python 3.6-3.8 on Windows, OSX, and Linux
-
-* Windows: 32-bit and 64-bit wheels built using Appveyor;
-* OSX: x64_86 OSX wheels built using travis-ci;
-* Linux: 32-bit and 64-bit Manylinux1 wheels built using travis-ci.
-
-See the `numpy wheels`_ building repository for more detail.
-
-.. _numpy wheels : https://github.com/MacPython/numpy-wheels
-
-
-Other
------
-- Release Notes
-- Changelog
-
-
 Source distribution
 -------------------
-We build source releases in both .zip and .tar.gz formats.
+source releases in both .zip and .tar.gz formats.
 
 
 Release process
@@ -198,12 +212,22 @@ Make sure current branch builds a package correctly
     python setup.py sdist
 
 To actually build the binaries after everything is set up correctly, the
-release.sh script can be used. For details of the build process itself, it is
+release.sh script can be used. For details of the build process itself it is
 best to read the pavement.py script.
 
 .. note:: The following steps are repeated for the beta(s), release
    candidates(s) and the final release.
 
+Check that docs can be built
+----------------------------
+Do::
+
+    cd doc/
+    make dist
+
+to check that the documentation is in a buildable state.  See
+doc/HOWTO_BUILD_DOCS.rst.txt for more details and for how to update
+http://docs.scipy.org.
 
 Check deprecations
 ------------------
@@ -251,7 +275,6 @@ There are three steps to the process.
 
 The C ABI version number in numpy/core/setup_common.py should only be
 updated for a major release.
-
 
 Check the release notes
 -----------------------
@@ -399,46 +422,6 @@ create an archive of the documentation in the numpy/doc repo::
     # Push to numpy/doc repo
     git -C build/merge push
 
-
-Update PyPI
------------
-The wheels and source should be uploaded to PyPI.
-
-You should upload the wheels first, and the source formats last, to make sure
-that pip users don't accidentally get a source install when they were
-expecting a binary wheel.
-
-You can do this automatically using the ``wheel-uploader`` script from
-https://github.com/MacPython/terryfy.  Here is the recommended incantation for
-downloading all the Windows, Manylinux, OSX wheels and uploading to PyPI. ::
-
-    NPY_WHLS=~/wheelhouse   # local directory to cache wheel downloads
-    CDN_URL=https://anaconda.org/multibuild-wheels-staging/numpy/files
-    wheel-uploader -u $CDN_URL -w $NPY_WHLS -v -s -t win numpy 1.11.1rc1
-    wheel-uploader -u $CDN_URL -w warehouse -v -s -t macosx numpy 1.11.1rc1
-    wheel-uploader -u $CDN_URL -w warehouse -v -s -t manylinux1 numpy 1.11.1rc1
-
-The ``-v`` flag gives verbose feedback, ``-s`` causes the script to sign the
-wheels with your GPG key before upload. Don't forget to upload the wheels
-before the source tarball, so there is no period for which people switch from
-an expected binary install to a source install from PyPI.
-
-There are two ways to update the source release on PyPI, the first one is::
-
-    $ git clean -fxd  # to be safe
-    $ python setup.py sdist --formats=gztar,zip  # to check
-    # python setup.py sdist --formats=gztar,zip upload --sign
-
-This will ask for your key PGP passphrase, in order to sign the built source
-packages.
-
-The second way is to upload the PKG_INFO file inside the sdist dir in the
-web interface of PyPI. The source tarball can also be uploaded through this
-interface.
-
-.. _push-tag-and-commit:
-
-
 Push the release tag and commit
 -------------------------------
 Finally, now you are confident this tag correctly defines the source code that
@@ -451,38 +434,22 @@ where ``upstream`` points to the main https://github.com/numpy/numpy.git
 repository.
 
 
-Update scipy.org
-----------------
-A release announcement with a link to the download site should be placed in the
-sidebar of the front page of scipy.org.
-
-The scipy.org should be a PR at https://github.com/scipy/scipy.org. The file
-that needs modification is ``www/index.rst``. Search for ``News``.
-
-
-Update oldest-supported-numpy
------------------------------
-If this release is the first one to support a new Python version, or the first
-to provide wheels for a new platform or PyPy version, the version pinnings
-in https://github.com/scipy/oldest-supported-numpy should be updated.
-Either submit a PR with changes to ``setup.cfg`` there, or open an issue with
-info on needed changes.
-
-
 Announce to the lists
 ---------------------
 The release should be announced on the mailing lists of
 NumPy and SciPy, to python-announce, and possibly also those of
-Matplotlib, IPython and/or Pygame.
+Matplotlib,IPython and/or Pygame.
 
-During the beta/RC phase, an explicit request for testing the binaries with
+During the beta/RC phase an explicit request for testing the binaries with
 several other libraries (SciPy/Matplotlib/Pygame) should be posted on the
 mailing list.
 
 
 Announce to Linux Weekly News
 -----------------------------
-Email the editor of LWN to let them know of the release.  Directions at:
+Email the editor of LWN to let them know of the release.
+(make sure to tell them the release is unofficial)
+Directions at:
 https://lwn.net/op/FAQ.lwn#contact
 
 
@@ -492,5 +459,5 @@ After the final release is announced, a few administrative tasks are left to be
 done:
 
   - Forward port changes in the release branch to release notes and release
-    scripts, if any, to master branch.
+    scripts, if any, to main branch.
   - Update the Milestones in Trac.
