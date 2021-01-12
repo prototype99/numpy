@@ -32,7 +32,6 @@ help:
 	@echo "  linkcheck to check all external links for integrity"
 	@echo "  dist PYVER=... to make a distribution-ready tree"
 	@echo "  gitwash-update GITWASH=path/to/gitwash  update gitwash developer docs"
-	@echo "  upload USERNAME=... RELEASE=... to upload built docs to docs.scipy.org"
 
 clean:
 	-rm -rf build/* source/reference/generated
@@ -51,7 +50,7 @@ gitwash-update:
 
 # Build the current numpy version, and extract docs from it.
 # We have to be careful of some issues:
-# 
+#
 # - Everything must be done using the same Python version
 # - We must use eggs (otherwise they might override PYTHONPATH on import).
 # - Different versions of easy_install install to different directories (!)
@@ -60,7 +59,6 @@ gitwash-update:
 
 INSTALL_DIR = $(CURDIR)/build/inst-dist/
 INSTALL_PPH = $(INSTALL_DIR)/lib/python$(PYVER)/site-packages:$(INSTALL_DIR)/local/lib/python$(PYVER)/site-packages:$(INSTALL_DIR)/lib/python$(PYVER)/dist-packages:$(INSTALL_DIR)/local/lib/python$(PYVER)/dist-packages
-UPLOAD_DIR=/srv/docs_scipy_org/doc/numpy-$(RELEASE)
 
 DIST_VARS=SPHINXBUILD="LANG=C PYTHONPATH=$(INSTALL_PPH) python$(PYVER) `which sphinx-build`" PYTHON="PYTHONPATH=$(INSTALL_PPH) python$(PYVER)" SPHINXOPTS="$(SPHINXOPTS)"
 
@@ -86,23 +84,6 @@ dist-build:
 	install -d $(subst :, ,$(INSTALL_PPH))
 	$(PYTHON) `which easy_install` --prefix=$(INSTALL_DIR) ../dist/*.egg
 
-upload:
-	# SSH must be correctly configured for this to work.
-	# Assumes that ``make dist`` was already run
-	# Example usage: ``make upload USERNAME=rgommers RELEASE=1.10.1``
-	ssh $(USERNAME)@new.scipy.org mkdir $(UPLOAD_DIR)
-	scp build/dist.tar.gz $(USERNAME)@new.scipy.org:$(UPLOAD_DIR)
-	ssh $(USERNAME)@new.scipy.org tar xvC $(UPLOAD_DIR) \
-	    -zf $(UPLOAD_DIR)/dist.tar.gz
-	ssh $(USERNAME)@new.scipy.org mv $(UPLOAD_DIR)/numpy-ref.pdf \
-	    $(UPLOAD_DIR)/numpy-ref-$(RELEASE).pdf
-	ssh $(USERNAME)@new.scipy.org mv $(UPLOAD_DIR)/numpy-user.pdf \
-	    $(UPLOAD_DIR)/numpy-user-$(RELEASE).pdf
-	ssh $(USERNAME)@new.scipy.org mv $(UPLOAD_DIR)/numpy-html.zip \
-	    $(UPLOAD_DIR)/numpy-html-$(RELEASE).zip
-	ssh $(USERNAME)@new.scipy.org rm $(UPLOAD_DIR)/dist.tar.gz
-	ssh $(USERNAME)@new.scipy.org ln -snf numpy-$(RELEASE) /srv/docs_scipy_org/doc/numpy
-	ssh $(USERNAME)@new.scipy.org /srv/bin/fixperm-scipy_org.sh
 
 #------------------------------------------------------------------------------
 # Basic Sphinx generation rules for different formats
